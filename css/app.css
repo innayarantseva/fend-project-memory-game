@@ -33,6 +33,10 @@ h1 {
     font-weight: 300;
 }
 
+i {
+    font-style: normal;
+}
+
 /*
  * Styles for the deck of cards
  */
@@ -81,11 +85,19 @@ h1 {
     font-size: 33px;
 }
 
+.deck .card.mismatch {
+    cursor: default;
+    background: #ff6873;
+    font-size: 33px;
+}
+
 /*
  * Styles for the Score Panel
  */
 
 .score-panel {
+    display: flex;
+    justify-content: space-between;
     text-align: left;
     width: 345px;
     margin-bottom: 10px;
@@ -106,4 +118,76 @@ h1 {
 .score-panel .restart {
     float: right;
     cursor: pointer;
+}
+
+/*
+ * Styles for the Win Window
+ */
+
+.win {
+    padding-top: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    background-color: white;
+    width: 100%;
+    height: 100%;
+}
+
+.congrats {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.stats {
+    opacity: 0.5;
+    font-weight: 200;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.reset-button {
+    background-color: #03ccbb;
+    box-shadow: none;
+    border: none;
+    border-radius: 5px;
+    width: 150px;
+    height: 35px;
+    font-size: 15px;
+    font-weight: 200;
+    color: white;
+}
+.reset-button:hover {
+    opacity: 0.7;
+}
+
+/*
+ * Media Queries
+ */
+
+
+@media screen and (max-width: 767px) {
+    .deck {
+        width: 90vw;
+        min-height: 90vw;
+        padding: 5vw;
+        border-radius: 2vw;
+    }
+    .deck .card {
+        height: 17vw;
+        width: 17vw;
+        border-radius: 1vw;
+    }
+    .score-panel {
+        width: 65vw;
+        margin-bottom: 1vw;
+    }
+    .score-panel .timer {
+        margin: 0 1vw;
+    }
+    .deck .card.show,
+    .deck .card.match {
+        font-size: 5vw;
+    }
 }

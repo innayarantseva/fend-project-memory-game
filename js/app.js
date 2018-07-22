@@ -1,15 +1,18 @@
-const deck             = document.querySelector( '.deck'  ),
-      timerPlaceholder = document.querySelector( '.timer' ),
-      movesPlaceholder = document.querySelector( '.moves' );
+const deck            = document.querySelector( '.deck'  ),
+      timer           = document.querySelector( '.timer' ),
+      movesContainer  = document.querySelector( '.moves' ),
+      starsContainer  = document.querySelector( '.stars' ),
+      container       = document.querySelector( '.container' ),
+      restartButton   = document.querySelector( '.restart' );
 
-let moves           = 0,
-    pairs           = 0,
-    gameTimer       = false, 
-    gameTimerActive = false,
-    tries           = [],
-    currentlyOpen   = [];
+let   moves           = 0,
+      pairs           = 0,
+      stars           = 3,
+      gameTimer       = false, 
+      gameTimerActive = false,
+      currentlyOpen   = [];
 
-const symbolClasses = [
+const symbolClasses   = [
     'fa-diamond', 
     'fa-diamond', 
     'fa-paper-plane-o', 
@@ -28,7 +31,7 @@ const symbolClasses = [
     'fa-bomb'
 ];
 
-/* State of the Game Functions */
+/* State of the Game */
 
 const startTimer = () => {
         let min = 0,
@@ -39,8 +42,8 @@ const startTimer = () => {
         gameTimer = setInterval(
             () => {
                 sec < 10 
-                    ? timerPlaceholder.innerHTML = `${min}:0${sec}`
-                    : timerPlaceholder.innerHTML = `${min}:${sec}`;
+                    ? timer.innerHTML = `${min}:0${sec}`
+                    : timer.innerHTML = `${min}:${sec}`;
 
                 if (sec === 59) {
                     min++;
@@ -55,10 +58,76 @@ const startTimer = () => {
 
     },
 
-    setCounter = () => movesPlaceholder.textContent = moves;
+    stopTimer = () => {
+        gameTimerActive = false;
+        clearInterval( gameTimer );
+    },
+
+    setCounter = () => movesContainer.textContent = moves,
+
+    setInitial = () => {
+        const winContainer = document.querySelector( '.win' );
+
+        moves     = 0,
+        pairs     = 0,
+        stars     = 3;
+
+        deck.removeEventListener( 'click', handleCardClick );
+        
+        stopTimer();
+        timer.innerHTML = "0:00";
+
+        if ( winContainer ) {
+            container.removeChild( winContainer );
+        }
+
+        setCounter();
+        setStars();
+    };
+
+    setNewGame = () => {
+        setInitial();
+
+        resetDeck();
+        generateCards();
+        shuffleDeck();
+        deck.addEventListener( 'click', handleCardClick );
+    },
+
+    // Hello, OneRepublic! :)
+    countStars = () => {
+
+        if      ( moves < 14 )                   { stars = 3; }
+        else if ( (moves >= 14) && (moves < 20) ) { stars = 2; }
+        else if ( moves >= 20 )                  { stars = 1; }
+
+        setStars();
+    },
+
+    setStars = () => {
+        starsContainer.innerHTML = '';
+
+        let star, starIcon;
+
+        for ( var count = 0; count < stars; count++  ) {
+            star     = document.createElement( 'li' );
+            starIcon = document.createElement( 'i'  );
+            starIcon.classList.add( 'fa', 'fa-star' );
+            star.append( starIcon );
+            starsContainer.append( star );
+        }
+
+        for ( var count = 0; count < (3 - stars); count++  ) {
+            star     = document.createElement( 'li' );
+            starIcon = document.createElement( 'i'  );
+            starIcon.classList.add( 'far', 'fa-star' );
+            star.append( starIcon );
+            starsContainer.append( star );
+        }
+    };
 
 
-/* Interaction with Deck Functions */
+/* Interaction with Deck */
 
 var resetDeck = () => {
         while ( deck.firstChild ) { 
@@ -94,11 +163,18 @@ var resetDeck = () => {
     },
 
     handleCardClick = ({target}) => {
+
+console.log(timer.innerHTML);
+
         !gameTimerActive && startTimer();
 
         if ( target.nodeName === 'LI' && !isOpened( target ) ) {
+            countStars();
+
             showSymbol( target );
             checkForMatch();
+
+            checkIfWin();
         }
     },
 
@@ -122,12 +198,15 @@ var resetDeck = () => {
                 a.classList.add( 'match' );
                 b.classList.add( 'match' );
                 pairs++;
+            } else {
+                a.classList.add( 'mismatch' );
+                b.classList.add( 'mismatch' );
             }
 
             setTimeout( 
                 () => {
-                    a.classList.remove( 'open', 'show' );
-                    b.classList.remove( 'open', 'show' );
+                    a.classList.remove( 'open', 'show', 'mismatch' );
+                    b.classList.remove( 'open', 'show', 'mismatch' );
 
                     currentlyOpen = [];
 
@@ -139,15 +218,38 @@ var resetDeck = () => {
             moves++;
             setCounter();
         }
-    }
+    },
 
-    setNewGame = () => {
-        resetDeck();
-        generateCards();
-        shuffleDeck();
-        deck.addEventListener( 'click', handleCardClick );
+    checkIfWin = () => {
+        if ( pairs === 8 ) {
+            stopTimer();
+            showWinWindow();
+        }
     };
 
+/* Win Window */
+
+const showWinWindow = () => {
+    // container.innerHTML = '';
+
+    const containerDiv = document.createElement( 'div' ),
+          congrats     = document.createElement( 'div' ),
+          stats        = document.createElement( 'div' ),
+          resetButton  = document.createElement( 'button' );
+
+    containerDiv.classList.add( 'win' );
+    congrats    .classList.add( 'congrats' );
+    stats       .classList.add( 'stats' );
+    resetButton .classList.add( 'reset-button' );
+
+    congrats   .innerText = 'Congratulations! You won!';
+    stats      .innerText = `With ${moves} moves and ${stars} stars. It tooks you ${timer.innerHTML} to win.\nJust great!`;
+    resetButton.innerText = 'Play again';
+
+    containerDiv.append( congrats, stats, resetButton );
+    container   .append( containerDiv );
+    resetButton.addEventListener( 'click', setNewGame );
+};
 
 // Shuffle function from http://stackoverflow.com/a/2450976
 function shuffle(array) {
@@ -165,5 +267,7 @@ function shuffle(array) {
 
     return array;
 }
+
+restartButton.addEventListener( 'click', setNewGame );
 
 setNewGame();
